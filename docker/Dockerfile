@@ -23,6 +23,21 @@ RUN apt-get install -y pkg-config
 
 RUN cargo install --git https://github.com/openmina/openmina --branch develop --bin openmina cli
 
+RUN apt-get install -y libelf-dev
+
+RUN cargo install bpf-linker --git https://github.com/vlad9486/bpf-linker.git --branch keep-btf
+
+RUN rustup install nightly-2022-10-10 && \
+    rustup component add rust-src --toolchain nightly-2022-10-10-x86_64-unknown-linux-gnu
+
+RUN git clone https://github.com/openmina/bpf-mem.git
+WORKDIR /bpf-mem
+RUN cargo +nightly-2022-10-10 rustc --bin=bpf-mem-kern --features=kern --no-default-features \
+    --target=bpfel-unknown-none -Z build-std=core --release -- \
+    -Cdebuginfo=2 -Clink-arg=--disable-memory-builtins -Clink-arg=--keep-btf && \
+    sed -i 's/ty__/type/g' target/bpfel-unknown-none/release/bpf-mem-kern
+RUN cargo install --path . --bin bpf-mem-user bpf-mem
+
 FROM scratch
 
 COPY --from=glibc /lib64/ld-linux-x86-64.so.2 /lib64/ld-linux-x86-64.so.2
@@ -40,8 +55,12 @@ COPY --from=libssl /lib/x86_64-linux-gnu/libssl.so.3 /lib/x86_64-linux-gnu/libss
 
 ENV LD_LIBRARY_PATH=/lib:/lib/x86_64-linux-gnu:/usr/lib:/usr/lib/x86_64-linux-gnu
 
+COPY --from=build-env /bin/sh /bin/sh
+COPY --from=build-env /usr/bin/sleep /usr/bin/sleep
+COPY --from=build-env /root/.cargo/bin/bpf-mem-user /usr/bin/bpf-mem-user
 COPY --from=build-env /root/.cargo/bin/openmina /usr/bin/openmina
+COPY --from=build-env /lib/x86_64-linux-gnu/libelf.so.1 /lib/x86_64-linux-gnu/libelf.so.1
+COPY --from=build-env /lib/x86_64-linux-gnu/libz.so.1 /lib/x86_64-linux-gnu/libz.so.1
+COPY --from=build-env /lib/x86_64-linux-gnu/libzstd.so.1 /lib/x86_64-linux-gnu/libzstd.so.1
 
-ENV BPF_MEM="1"
-
-ENTRYPOINT ["/usr/bin/openmina", "node"]
+ENTRYPOINT ["/bin/sh", "-c", "RUST_LOG=info /usr/bin/bpf-mem-user & /usr/bin/sleep 1 && BPF_MEM=1 /usr/bin/openmina node"]
