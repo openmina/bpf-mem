@@ -9,6 +9,10 @@ spec:
   ports:
     - port: 17832
       protocol: TCP
+      name: profiler
+    - port: 3000
+      protocol: TCP
+      name: node-server
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -37,6 +41,9 @@ spec:
               protocol: TCP
             - name: profiler
               containerPort: 17832
+              protocol: TCP
+            - name: node-server
+              containerPort: 3000
               protocol: TCP
           env:
             - name: BPF_MEM
