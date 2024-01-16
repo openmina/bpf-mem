@@ -67,7 +67,11 @@ impl SymbolTable {
                 continue;
             };
 
-            for symbol in (0..).filter_map(|i| symtab.pick(i).ok()) {
+            for symbol in (0..)
+                .map(|i| symtab.pick(i).ok())
+                .take_while(Option::is_some)
+                .map(Option::unwrap)
+            {
                 let range = (symbol.value as u32)..((symbol.value + symbol.size) as u32);
                 let name_offset = (strings.len() as u32) + symbol.name;
                 symbols.push(Symbol { range, name_offset })
@@ -123,6 +127,7 @@ impl SymbolTable {
                         Ok(name) => Some(
                             std::str::from_utf8(name)
                                 .unwrap_or("bad-symbol-name")
+                                .trim_end_matches(0 as char)
                                 .to_string(),
                         ),
                         Err(e) => Some(format!("\"string table error {:?}\"", e)),
