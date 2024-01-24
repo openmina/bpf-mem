@@ -8,10 +8,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y tzdata &
 RUN apt-get install -y wget build-essential m4 flex gawk bison python3
 
 ARG GLIBC_VERSION=2.38
-ARG CFLAGS=-O2\ -fno-omit-frame-pointer
+RUN wget -q https://ftpmirror.gnu.org/glibc/glibc-${GLIBC_VERSION}.tar.gz -O - | tar -xzf -
 
-RUN wget -q https://ftpmirror.gnu.org/glibc/glibc-${GLIBC_VERSION}.tar.gz && \
-    tar xzf glibc-${GLIBC_VERSION}.tar.gz
+ARG CFLAGS=-O1\ -fno-omit-frame-pointer
 RUN mkdir /glibc-build && cd /glibc-build && \
     CFLAGS="${CFLAGS}" ../glibc-${GLIBC_VERSION}/configure --prefix=/usr/local/lib/glibc-${GLIBC_VERSION} && \
     make -j$(nproc) && make install

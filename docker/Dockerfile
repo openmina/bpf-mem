@@ -21,7 +21,7 @@ RUN rustup update nightly-2023-12-22 && \
 
 RUN apt-get install -y pkg-config
 
-RUN cargo install --git https://github.com/openmina/openmina --branch develop --bin openmina cli
+RUN RUSTFLAGS="-Cforce-frame-pointers=yes" cargo install --git https://github.com/openmina/openmina --branch develop --bin openmina cli
 
 RUN apt-get install -y libelf-dev
 

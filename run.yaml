@@ -33,6 +33,7 @@ spec:
       containers:
         - name: openmina
           image: vladsimplestakingcom/openmina:keep-frame-pointers
+          imagePullPolicy: Always
           securityContext:
             privileged: true
           ports:

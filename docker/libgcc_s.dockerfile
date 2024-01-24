@@ -8,10 +8,12 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y tzdata &
 RUN apt-get install -y wget build-essential m4 flex gawk bison python3
 
 ARG GCC_VERSION=13.2.0
-ARG CFLAGS=-O2\ -fno-omit-frame-pointer
+# RUN wget -q https://ftpmirror.gnu.org/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.xz && \
+#     tar xf gcc-${GCC_VERSION}.tar.xz && cd gcc-${GCC_VERSION} && contrib/download_prerequisites
+RUN wget -q https://ftpmirror.gnu.org/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.xz -O - | tar -xJf - && \
+    cd gcc-${GCC_VERSION} && contrib/download_prerequisites
 
-RUN wget -q https://ftpmirror.gnu.org/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.xz && \
-    tar xf gcc-${GCC_VERSION}.tar.xz && cd gcc-${GCC_VERSION} && contrib/download_prerequisites
+ARG CFLAGS=-O2\ -fno-omit-frame-pointer
 RUN mkdir /gcc-build && cd /gcc-build && \
     CFLAGS="${CFLAGS}" ../gcc-${GCC_VERSION}/configure -v --build=x86_64-linux-gnu --host=x86_64-linux-gnu \
         --target=x86_64-linux-gnu --prefix=/usr/local/gcc-${GCC_VERSION} --enable-checking=release \
