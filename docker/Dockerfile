@@ -6,17 +6,17 @@ FROM libgcc_s:13.2.0-keep-frame-pointers as libgcc_s
 
 FROM libssl:3.2.0-keep-frame-pointers as libssl
 
-FROM ubuntu:23.10 as build-env
+FROM ubuntu:22.04 as build-env
 
 RUN apt-get update && \
-    apt-get install -y build-essential curl git libssl-dev libjemalloc-dev jq
+    apt-get install -y build-essential curl git libssl-dev libjemalloc-dev jq protobuf-compiler
 
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 
 ENV PATH=${PATH}:/root/.cargo/bin/
 
-RUN rustup update nightly-2023-12-22 && \
-    rustup default nightly-2023-12-22 && \
+RUN rustup update stable && \
+    rustup default stable && \
     rustup component add rustfmt
 
 RUN apt-get install -y pkg-config
@@ -25,7 +25,8 @@ RUN RUSTFLAGS="-Cforce-frame-pointers=yes" cargo install --git https://github.co
 
 RUN apt-get install -y libelf-dev
 
-RUN cargo install bpf-linker --git https://github.com/vlad9486/bpf-linker.git --branch keep-btf
+RUN rustup update nightly-2022-12-10
+RUN cargo +nightly-2022-12-10 install bpf-linker --git https://github.com/vlad9486/bpf-linker.git --branch keep-btf
 
 RUN rustup install nightly-2022-10-10 && \
     rustup component add rust-src --toolchain nightly-2022-10-10-x86_64-unknown-linux-gnu

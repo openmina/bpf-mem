@@ -1,6 +1,6 @@
 # docker build -t libssl:3.2.0-keep-frame-pointers -f libssl.dockerfile .
 
-FROM ubuntu:23.10 as build-env
+FROM ubuntu:22.04 as build-env
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y tzdata && \
     ln -fs /usr/share/zoneinfo/UTC /etc/localtime && \
